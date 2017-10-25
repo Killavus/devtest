@@ -5,9 +5,11 @@ gem 'rails', '4.2.10'
 gem 'pg', '~> 0.15'
 gem 'jbuilder', '~> 2.0'
 gem 'sdoc', '~> 0.4.0', group: :doc
+gem 'dry-types', '~> 0.10.0'
 
 group :development, :test do
   gem 'byebug'
+  gem 'dotenv-rails', '~> 2.2.1'
 end
 
 group :development do
