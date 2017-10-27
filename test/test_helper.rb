@@ -5,10 +5,10 @@ require 'rails/test_help'
 class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
   # Add more helper methods to be used by all tests here...
+end
 
-  class TestTimeAdapter
-    def now
-      Time.new(2017, 10, 25, 20, 24, 33, "+02:00")
-    end
+class ActionController::TestCase
+  def json_body
+    JSON.parse(response.body)
   end
 end
