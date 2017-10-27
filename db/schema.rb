@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171027022715) do
+ActiveRecord::Schema.define(version: 20171027031213) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -25,6 +25,16 @@ ActiveRecord::Schema.define(version: 20171027022715) do
   end
 
   add_index "countries", ["panel_provider_id"], name: "index_countries_on_panel_provider_id", using: :btree
+
+  create_table "country_target_group_assignments", force: :cascade do |t|
+    t.integer  "country_id"
+    t.integer  "target_group_id"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+  end
+
+  add_index "country_target_group_assignments", ["country_id"], name: "index_country_target_group_assignments_on_country_id", using: :btree
+  add_index "country_target_group_assignments", ["target_group_id"], name: "index_country_target_group_assignments_on_target_group_id", using: :btree
 
   create_table "location_group_assignments", force: :cascade do |t|
     t.integer  "location_group_id"
@@ -63,10 +73,27 @@ ActiveRecord::Schema.define(version: 20171027022715) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "target_groups", force: :cascade do |t|
+    t.string   "name",                                            null: false
+    t.uuid     "external_id",       default: "gen_random_uuid()"
+    t.integer  "parent_id"
+    t.string   "secret_code",                                     null: false
+    t.integer  "panel_provider_id"
+    t.datetime "created_at",                                      null: false
+    t.datetime "updated_at",                                      null: false
+  end
+
+  add_index "target_groups", ["panel_provider_id"], name: "index_target_groups_on_panel_provider_id", using: :btree
+  add_index "target_groups", ["parent_id"], name: "index_target_groups_on_parent_id", using: :btree
+
   add_foreign_key "countries", "panel_providers"
+  add_foreign_key "country_target_group_assignments", "countries"
+  add_foreign_key "country_target_group_assignments", "target_groups"
   add_foreign_key "location_group_assignments", "location_groups"
   add_foreign_key "location_group_assignments", "locations"
   add_foreign_key "location_groups", "countries"
   add_foreign_key "location_groups", "panel_providers"
   add_foreign_key "locations", "panel_providers"
+  add_foreign_key "target_groups", "panel_providers"
+  add_foreign_key "target_groups", "target_groups", column: "parent_id"
 end
