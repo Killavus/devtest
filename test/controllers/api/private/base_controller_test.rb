@@ -3,14 +3,35 @@ require 'test_helper'
 module Api::Private
   ExamplesController = Class.new(BaseController) do
     def index
+      render json: { code: current_panel_provider.code }
     end
   end
 
   class BaseControllerTest < ActionController::TestCase
     tests ExamplesController
 
+    def setup
+      @prev_jwt_secret = (ENV['JWT_SECRET'] || '').dup
+      @panel_provider = PanelProvider.create!(code: 'TIMES_1')
+      ENV['JWT_SECRET'] = default_jwt_secret
+    end
+
+    def teardown
+      @panel_provider.destroy
+      ENV['JWT_SECRET'] = @prev_jwt_secret
+    end
+
+    def test_properly_authorized_request_have_access_to_panel_provider
+      get_index(jwt_token_generator.generate(panel_provider_id: @panel_provider.id, private_api: true))
+
+      assert_response :ok
+      assert_equal(
+        { "code" => "TIMES_1" },
+        json_body
+      )
+    end
+
     def test_misconfigured_app_is_handled_properly
-      jwt_secret = (ENV['JWT_SECRET'] || '').dup
       ENV['JWT_SECRET'] = ''
 
       get_index('123456')
@@ -20,14 +41,19 @@ module Api::Private
         { "error" => "IdentityAccess::Errors::Misconfigured" },
         json_body
       )
+    end
 
-      ENV['JWT_SECRET'] = jwt_secret
+    def test_non_private_api_sessions_are_rejected
+      get_index(jwt_token_generator.generate(panel_provider_id: 123))
+
+      assert_response :unauthorized
+      assert_equal(
+        { "error" => "IdentityAccess::Errors::AccessDenied" },
+        json_body
+      )
     end
 
     def test_authentication_errors_are_handled_properly
-      jwt_secret = (ENV['JWT_SECRET'] || '').dup
-      ENV['JWT_SECRET'] = default_jwt_secret
-
       error_tokens = {
         nil => 'IdentityAccess::Errors::MissingCredentials',
         '' => 'IdentityAccess::Errors::MissingCredentials',
@@ -46,8 +72,6 @@ module Api::Private
           "Expected error #{expected_error} for token #{token.inspect}"
         )
       end
-
-      ENV['JWT_SECRET'] = jwt_secret
     end
 
     private

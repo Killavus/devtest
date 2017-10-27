@@ -22,9 +22,17 @@ module Api::Private
     def authorize!
       extracted_token = (request.authorization || '').gsub(/Bearer\s+/, '')
 
-      @current_session ||= IdentityAccess::JwtTokenAuth.
+      session = IdentityAccess::JwtTokenAuth.
         new(ENV['JWT_SECRET']).
         make_session!(extracted_token)
+
+      raise IdentityAccess::Errors::AccessDenied.new unless session.private_api
+
+      @current_session = session
+    end
+
+    def current_panel_provider
+      @current_panel_provider ||= PanelProvider.find(@current_session.panel_provider_id)
     end
   end
 end
