@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171027031213) do
+ActiveRecord::Schema.define(version: 20171027040012) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -58,14 +58,12 @@ ActiveRecord::Schema.define(version: 20171027031213) do
   add_index "location_groups", ["panel_provider_id"], name: "index_location_groups_on_panel_provider_id", using: :btree
 
   create_table "locations", force: :cascade do |t|
-    t.string   "name",                                            null: false
-    t.uuid     "external_id",       default: "gen_random_uuid()"
-    t.integer  "panel_provider_id"
-    t.datetime "created_at",                                      null: false
-    t.datetime "updated_at",                                      null: false
+    t.string   "name",                                      null: false
+    t.uuid     "external_id", default: "gen_random_uuid()"
+    t.datetime "created_at",                                null: false
+    t.datetime "updated_at",                                null: false
+    t.string   "secret_code",                               null: false
   end
-
-  add_index "locations", ["panel_provider_id"], name: "index_locations_on_panel_provider_id", using: :btree
 
   create_table "panel_providers", force: :cascade do |t|
     t.string   "code",       null: false
@@ -93,7 +91,6 @@ ActiveRecord::Schema.define(version: 20171027031213) do
   add_foreign_key "location_group_assignments", "locations"
   add_foreign_key "location_groups", "countries"
   add_foreign_key "location_groups", "panel_providers"
-  add_foreign_key "locations", "panel_providers"
   add_foreign_key "target_groups", "panel_providers"
   add_foreign_key "target_groups", "target_groups", column: "parent_id"
 end
