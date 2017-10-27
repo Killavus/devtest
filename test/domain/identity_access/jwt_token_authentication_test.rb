@@ -10,6 +10,19 @@ module IdentityAccess
 
         assert_equal(112, api_session.panel_provider_id)
         assert_equal(Time.now.advance(hours: 1).to_i, api_session.expires_at.to_i)
+        assert_equal(false, api_session.private_api)
+      end
+    end
+
+    def test_valid_private_token_produces_private_api_session
+      Timecop.freeze do
+        valid_token = jwt_token_generator.generate(panel_provider_id: 112, private_api: true)
+
+        api_session = jwt_token_auth.make_session!(valid_token)
+
+        assert_equal(112, api_session.panel_provider_id)
+        assert_equal(Time.now.advance(hours: 1).to_i, api_session.expires_at.to_i)
+        assert_equal(true, api_session.private_api)
       end
     end
 

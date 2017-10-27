@@ -12,6 +12,7 @@ module IdentityAccess
 
       ApiSession.new(
         panel_provider_id: decoded_token['data']['panel_provider_id'],
+        private_api: decoded_token['data']['private_api'],
         expires_at: Time.at(decoded_token['exp'])
       )
     rescue JWT::ExpiredSignature

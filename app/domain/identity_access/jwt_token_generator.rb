@@ -5,9 +5,9 @@ module IdentityAccess
       raise Errors::Misconfigured.new if secret.blank?
     end
 
-    def generate(panel_provider_id:)
+    def generate(panel_provider_id:, private_api:false)
       JWT.encode(
-        { data: { panel_provider_id: panel_provider_id }, exp: Time.now.advance(hours: 1).to_i },
+        { data: { panel_provider_id: panel_provider_id, private_api: private_api }, exp: Time.now.advance(hours: 1).to_i },
         secret,
         'HS256'
       )
