@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  country_code: MyString
+  panel_provider_id_id: 
+
+two:
+  country_code: MyString
+  panel_provider_id_id: 
