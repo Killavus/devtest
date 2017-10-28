@@ -64,7 +64,7 @@ class TargetGroupsControllerTest < ActionController::TestCase
   def get_index
     auth_token = IdentityAccess::JwtTokenGenerator.
       new(default_jwt_secret).
-      generate(panel_provider_id: @panel_provider.id, private_api: true)
+      generate(panel_provider_id: @panel_provider.id)
 
     request.headers['Authorization'] = "Bearer #{auth_token}"
     get :index, country_id: @country.country_code
