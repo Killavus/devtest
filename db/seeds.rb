@@ -113,6 +113,10 @@ TARGET_GROUPS = [
 ]
 
 def destroy_target_groups!
+  # Since we have strict database checking of foreign keys,
+  # we need to preserve order in which we destroy target groups - from leaves to nodes.
+  # It is usually called topological sort and we're doing it here indirectly.
+
   nodes_in_rtopo_order = TargetGroup.where(parent_id: nil)
   node_level = TargetGroup.where(parent_id: nil)
 
