@@ -9,10 +9,10 @@ module TargetGroups
       end
     end
 
-    def for_country(country)
+    def for_country(country, panel_provider)
       hierarchy_root_nodes = CountryTargetGroupAssignment.
-        preload(target_group: [:panel_provider]).
-        where(country: country).
+        joins(target_group: [:panel_provider]).
+        where(country: country, target_groups: { panel_provider_id: panel_provider.id }).
         map(&:target_group)
 
       hierarchy_countries = CountryTargetGroupAssignment.

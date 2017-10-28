@@ -41,7 +41,7 @@ module TargetGroups
       hierarchy_db = HierarchyDb.new
       hierarchy_db.store(new_hierarchy)
 
-      loaded_hierarchy = hierarchy_db.for_country(@country).first
+      loaded_hierarchy = hierarchy_db.for_country(@country, @panel_provider).first
 
       assert_hierarchy_structure({
         name: 'IT Employees',
