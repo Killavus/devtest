@@ -65,13 +65,7 @@ module TargetGroups
     end
 
     def persist_all_nodes(hierarchy)
-      nodes_queue = [hierarchy.root_node]
-
-      while nodes_queue.length > 0
-        node = nodes_queue.shift
-        persist_node(node)
-        node.children.each { |child| nodes_queue << child }
-      end
+      hierarchy.each(&method(:persist_node))
     end
 
     def persist_node(node)
