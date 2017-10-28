@@ -1,7 +1,8 @@
 module Private
   class TargetGroupsController < BaseController
-    def index
+    include CountryCodeScoped
 
+    def index
     end
   end
 end
