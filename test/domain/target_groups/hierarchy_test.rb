@@ -80,6 +80,42 @@ module TargetGroups
       }, loaded_hierarchy)
     end
 
+    def test_hierarchy_has_an_iterator
+      new_hierarchy = Hierarchy.new(
+        panel_provider: @panel_provider,
+        secret_code: generate_code,
+        name: 'IT Employees'
+      )
+
+      new_hierarchy.
+        root_node.
+          add_child(name: 'Software Developers', secret_code: generate_code).
+          add_child(name: 'Testers & QAs', secret_code: generate_code)
+
+      new_hierarchy.
+        node('Software Developers').
+          add_child(name: 'Python Developers', secret_code: generate_code).
+          add_child(name: 'Java Developers', secret_code: generate_code)
+
+      new_hierarchy.
+        node('Testers & QAs').
+          add_child(name: 'Hardware Testers', secret_code: generate_code)
+
+      traversed_tree = new_hierarchy.map { |n| n.name }
+
+      assert_equal(
+        [
+         "IT Employees",
+         "Software Developers",
+         "Testers & QAs",
+         "Python Developers",
+         "Java Developers",
+         "Hardware Testers"
+        ],
+        traversed_tree
+      )
+  end
+
     private
 
     def assert_hierarchy_structure(expected, hierarchy)

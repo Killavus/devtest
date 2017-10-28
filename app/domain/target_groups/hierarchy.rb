@@ -90,6 +90,8 @@ module TargetGroups
       attr_reader :node, :hierarchy
     end
 
+    include Enumerable
+
     def initialize(
       panel_provider:,
       secret_code:,
@@ -123,6 +125,16 @@ module TargetGroups
 
     def root_node
       HierarchyNode.new(self, @root_node)
+    end
+
+    def each
+      queue = [root_node]
+
+      while queue.length > 0
+        node = queue.shift
+        yield node
+        node.children.each { |child| queue << child }
+      end
     end
 
     attr_reader :countries
