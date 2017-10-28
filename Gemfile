@@ -8,6 +8,7 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 gem 'dry-types', '~> 0.10.0'
 gem 'dry-struct', '~> 0.3.1'
 gem 'jwt', '~> 2.1.0'
+gem 'equalizer', '~> 0.0.11'
 
 group :development, :test do
   gem 'byebug'
