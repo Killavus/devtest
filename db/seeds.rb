@@ -26,33 +26,116 @@ LOCATION_GROUPS = [
 ]
 
 LOCATIONS = [
-  { name: 'Wrocław', location_groups: ['Polish Cities'], secret_code: SecureRandom.hex },
-  { name: 'Warszawa', location_groups: ['Polish Cities'], secret_code: SecureRandom.hex },
-  { name: 'Kraków', location_groups: ['Polish Cities'], secret_code: SecureRandom.hex },
-  { name: 'Sopot', location_groups: ['Polish Cities', 'Polish Sea'], secret_code: SecureRandom.hex },
-  { name: 'Gdynia', location_groups: ['Polish Cities', 'Polish Sea'], secret_code: SecureRandom.hex },
-  { name: 'Gdańsk', location_groups: ['Polish Cities', 'Polish Sea'], secret_code: SecureRandom.hex },
-  { name: 'Koszalin', location_groups: ['Polish Cities', 'Polish Sea'], secret_code: SecureRandom.hex },
-  { name: 'Tokio', location_groups: ['Japanese Cities'], secret_code: SecureRandom.hex },
-  { name: 'Kyoto', location_groups: ['Japanese Cities'], secret_code: SecureRandom.hex },
-  { name: 'Osaka', location_groups: ['Japanese Cities'], secret_code: SecureRandom.hex },
-  { name: 'Yokohama', location_groups: ['Japanese Cities'], secret_code: SecureRandom.hex },
-  { name: 'Sapporo', location_groups: ['Japanese Cities'], secret_code: SecureRandom.hex },
-  { name: 'London', location_groups: ['British Cities'], secret_code: SecureRandom.hex },
-  { name: 'Birmingham', location_groups: ['British Cities'], secret_code: SecureRandom.hex },
-  { name: 'Edinburgh', location_groups: ['British Cities'], secret_code: SecureRandom.hex },
-  { name: 'Liverpool', location_groups: ['British Cities'], secret_code: SecureRandom.hex },
-  { name: 'Bristol', location_groups: ['British Cities'], secret_code: SecureRandom.hex },
-  { name: 'Glasgow', location_groups: ['British Cities'], secret_code: SecureRandom.hex },
-  { name: 'Leeds', location_groups: ['British Cities'], secret_code: SecureRandom.hex },
-  { name: 'Oxford', location_groups: ['British Cities'], secret_code: SecureRandom.hex }
+  { name: 'Wrocław', location_groups: ['Polish Cities'] },
+  { name: 'Warszawa', location_groups: ['Polish Cities'] },
+  { name: 'Kraków', location_groups: ['Polish Cities'] },
+  { name: 'Sopot', location_groups: ['Polish Cities', 'Polish Sea'] },
+  { name: 'Gdynia', location_groups: ['Polish Cities', 'Polish Sea'] },
+  { name: 'Gdańsk', location_groups: ['Polish Cities', 'Polish Sea'] },
+  { name: 'Koszalin', location_groups: ['Polish Cities', 'Polish Sea'] },
+  { name: 'Tokio', location_groups: ['Japanese Cities'] },
+  { name: 'Kyoto', location_groups: ['Japanese Cities'] },
+  { name: 'Osaka', location_groups: ['Japanese Cities'] },
+  { name: 'Yokohama', location_groups: ['Japanese Cities'] },
+  { name: 'Sapporo', location_groups: ['Japanese Cities'] },
+  { name: 'London', location_groups: ['British Cities'] },
+  { name: 'Birmingham', location_groups: ['British Cities'] },
+  { name: 'Edinburgh', location_groups: ['British Cities'] },
+  { name: 'Liverpool', location_groups: ['British Cities'] },
+  { name: 'Bristol', location_groups: ['British Cities'] },
+  { name: 'Glasgow', location_groups: ['British Cities'] },
+  { name: 'Leeds', location_groups: ['British Cities'] },
+  { name: 'Oxford', location_groups: ['British Cities'] }
 ]
+
+TARGET_GROUPS = [
+  {
+    name: 'IT',
+    country_codes: ['PL', 'JP'],
+    panel_provider_code: 'TIMES_A',
+    children: [
+      {
+        name: 'Software Developers',
+        children: [
+          { name: 'Python Developers', children: [] },
+          { name: 'Java Developers', children: [] }
+        ]
+      },
+      {
+        name: 'QA & Testers',
+        children: []
+      }
+    ]
+  },
+  {
+    name: 'Investors',
+    country_codes: ['UK'],
+    panel_provider_code: '10_ARRAYS',
+    children: [
+      {
+        name: 'VC Investors',
+        children: [
+          { name: 'Angel Investors', children: [] }
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Journalists',
+    country_codes: ['UK', 'PL'],
+    panel_provider_code: 'TIMES_HTML',
+    children: [
+      {
+        name: 'Press Journalists',
+        children: []
+      },
+      {
+        name: 'YouTube Journalists',
+        children: [
+          { name: 'Game Dev Journalists', children: [] }
+        ]
+      }
+    ]
+  },
+  {
+    name: 'Butchers',
+    country_codes: ['JP'],
+    panel_provider_code: 'TIMES_HTML',
+    children: [
+      {
+        name: 'Poultry Butchers',
+        children: [
+          { name: 'Turkey Butchers', children: [] }
+        ]
+      }
+    ]
+  }
+]
+
+def destroy_target_groups!
+  nodes_in_rtopo_order = TargetGroup.where(parent_id: nil)
+  node_level = TargetGroup.where(parent_id: nil)
+
+  while node_level.length > 0
+    next_node_level = TargetGroup.where(parent: node_level)
+    nodes_in_rtopo_order += next_node_level
+    node_level = next_node_level
+  end
+
+  ActiveRecord::Base.transaction do
+    nodes_in_rtopo_order.reverse.each do |node|
+      node.destroy
+    end
+  end
+end
 
 ActiveRecord::Base.transaction do
   if ENV['PURGE'] then
     LocationGroupAssignment.destroy_all
     Location.destroy_all
     LocationGroup.destroy_all
+    CountryTargetGroupAssignment.destroy_all
+    destroy_target_groups!
     Country.destroy_all
     PanelProvider.destroy_all
   end
@@ -79,7 +162,7 @@ ActiveRecord::Base.transaction do
 
   LOCATIONS.each do |location|
     Location.create!(
-      secret_code: location[:secret_code],
+      secret_code: SecureRandom.hex,
       name: location[:name]
     ).tap do |record|
       location[:location_groups].each do |group_name|
@@ -88,5 +171,38 @@ ActiveRecord::Base.transaction do
         LocationGroupAssignment.create!(location: record, location_group: location_group)
       end
     end
+  end
+
+  target_group_hierarchy_db = TargetGroups::HierarchyDb.new
+
+  TARGET_GROUPS.each do |group|
+    panel_provider = PanelProvider.find_by(code: group[:panel_provider_code])
+    hierarchy = TargetGroups::Hierarchy.new(
+      name: group[:name],
+      secret_code: SecureRandom.hex,
+      panel_provider: panel_provider
+    )
+
+    group[:country_codes].each do |country_code|
+      hierarchy.link_country(Country.find_by!(country_code: country_code))
+    end
+
+    queue = [[hierarchy.root_node, group[:children]]]
+
+    while queue.length > 0
+      parent, children_spec = queue.shift
+
+      children_spec.each do |child_spec|
+        queue << [
+          parent.into_add_child(
+            name: child_spec[:name],
+            secret_code: SecureRandom.hex
+          ),
+          child_spec[:children]
+        ]
+      end
+    end
+
+    target_group_hierarchy_db.store(hierarchy)
   end
 end

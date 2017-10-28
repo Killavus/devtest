@@ -93,7 +93,8 @@ module TargetGroups
     def initialize(
       panel_provider:,
       secret_code:,
-      name:, __ar: nil,
+      name:,
+      __ar: nil,
       countries: []
     )
       @countries = countries
