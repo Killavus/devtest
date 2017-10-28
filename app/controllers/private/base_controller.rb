@@ -4,7 +4,6 @@ module Private
 
       def authorize!
         super
-
         raise IdentityAccess::Errors::AccessDenied.new unless @current_api_session.private_api
       end
   end
